@@ -1,6 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Markal - Pulverizadores e Barras Hidráulicas</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f5f5f5; }
+    header { background:#005f73; color:#fff; padding:1rem; font-size:1.5rem; font-weight:bold; }
+    nav { background:#0a9396; padding:0.5rem; display:flex; gap:1rem; }
+    nav button { background:#94d2bd; border:none; padding:0.5rem 1rem; cursor:pointer; font-weight:600; border-radius:4px; }
+    nav button.active { background:#ee9b00; color:#fff; }
+    main { padding:1rem; }
+    table { width: 100%; border-collapse: collapse; margin-bottom:1rem; background:#fff; }
+    th, td { padding:0.5rem; border:1px solid #ccc; text-align:left; vertical-align: middle; }
+    th { background:#94d2bd; }
+    input[type="text"], input[type="number"], input[type="date"], select { padding:0.3rem; width:100%; box-sizing:border-box; }
+    button.small-btn { padding:0.3rem 0.6rem; font-size:0.9rem; margin-left:0.3rem; cursor:pointer; border-radius:3px; border:none; background:#ee9b00; color:#fff; }
+    button.small-btn:hover { background:#ca7f00; }
+    img.prod-img { max-width:50px; max-height:50px; object-fit:contain; }
+    .flex-row { display:flex; gap:0.5rem; align-items:center; }
+    .checkbox-pdf { width:16px; height:16px; }
+  </style>
+</head>
+<body>
+
+<header>Markal - Pulverizadores e Barras Hidráulicas</header>
+<nav>
+  <button id="tabProdutoBtn" class="active">Produto</button>
+  <button id="tabCarrinhoBtn">Carrinho de Compra</button>
+  <button id="tabCotacaoBtn">Cotação</button>
+  <button id="tabPedidosBtn">Pedidos</button>
+  <button id="tabInventarioBtn">Inventário</button>
+</nav>
+
+<main>
+  <section id="tabProduto" style="display:block;">
+    <h2>Cadastro de Produto</h2>
+    <form id="formProduto">
+      <div class="flex-row"><label style="width:80px;">Código:</label><input type="text" id="produtoCodigo" required /></div>
+      <div class="flex-row"><label style="width:80px;">Descrição:</label><input type="text" id="produtoDescricao" required /></div>
+      <div class="flex-row"><label style="width:80px;">Fornecedor:</label><input type="text" id="produtoFornecedor" required /></div>
+      <div class="flex-row"><label style="width:80px;">Imagem:</label><input type="file" id="produtoImagem" accept="image/*" /></div>
+      <button type="submit">Adicionar Produto</button>
+    </form>
+    <h3>Produtos Cadastrados</h3>
+    <div class="flex-row"><label style="width:100px;">Buscar:</label><input type="text" id="filtroProduto" placeholder="Código ou Fornecedor" /></div>
+    <table>
+      <thead>
+        <tr><th>Código</th><th>Descrição</th><th>Fornecedor</th><th>Imagem</th><th>Ações</th></tr>
+      </thead>
+      <tbody id="listaProdutos"></tbody>
+    </table>
+  </section>
+  <!-- Outras abas omitidas por brevidade -->
+</main>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { 
+    getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot, query, where 
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCGyMwZj4jSoc3Aur0IW3eH7CUFxI5Hxsw",
@@ -14,67 +73,101 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const salvarNoFirestore = async (produto) => {
+  const listaProdutosEl = document.getElementById("listaProdutos");
+  const filtroProdutoEl = document.getElementById("filtroProduto");
+
+  // Função para mostrar produtos na tabela
+  function exibirProdutos(produtos) {
+    listaProdutosEl.innerHTML = "";
+    produtos.forEach(({ id, codigo, descricao, fornecedor, imagem }) => {
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${codigo}</td>
+        <td>${descricao}</td>
+        <td>${fornecedor}</td>
+        <td>${imagem ? `<img src="${imagem}" alt="Imagem" class="prod-img" />` : ""}</td>
+        <td><button class="small-btn" data-id="${id}">Excluir</button></td>
+      `;
+
+      listaProdutosEl.appendChild(tr);
+    });
+
+    // Configura evento para os botões Excluir
+    listaProdutosEl.querySelectorAll("button.small-btn").forEach(btn => {
+      btn.onclick = async () => {
+        const id = btn.getAttribute("data-id");
+        if (confirm("Deseja excluir este produto?")) {
+          await deleteDoc(doc(db, "produtos", id));
+          alert("Produto excluído!");
+        }
+      };
+    });
+  }
+
+  // Busca e atualiza lista no Firestore (com filtro simples)
+  async function buscarProdutos(filtro = "") {
+    let q = collection(db, "produtos");
+    if (filtro.trim() !== "") {
+      // Filtra por código ou fornecedor (simples, 'where' para igualdade exata)
+      // OBS: Firestore não tem filtro 'OR' direto, então buscamos tudo e filtramos localmente:
+      const snapshot = await getDocs(q);
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const filtrados = docs.filter(p => 
+        p.codigo.toLowerCase().includes(filtro.toLowerCase()) ||
+        p.fornecedor.toLowerCase().includes(filtro.toLowerCase())
+      );
+      exibirProdutos(filtrados);
+      return;
+    }
+
+    // Se não tem filtro, escuta mudanças em tempo real para atualizar a lista automaticamente
+    onSnapshot(q, snapshot => {
+      const produtos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      exibirProdutos(produtos);
+    });
+  }
+
+  // Inicializa exibição da lista sem filtro
+  buscarProdutos();
+
+  // Atualiza lista ao digitar filtro
+  filtroProdutoEl.addEventListener("input", e => {
+    buscarProdutos(e.target.value);
+  });
+
+  // Função para salvar produto no Firestore
+  async function salvarNoFirestore(produto) {
     try {
       await addDoc(collection(db, "produtos"), produto);
       console.log("Produto salvo no Firestore");
     } catch (err) {
-      console.error("Erro ao salvar no Firestore:", err);
+      console.error("Erro ao salvar Firestore:", err);
     }
-  };
+  }
 
-  const carregarProdutos = async () => {
-    const listaProdutos = document.getElementById("listaProdutos");
-    listaProdutos.innerHTML = "";
-
-    try {
-      const querySnapshot = await getDocs(collection(db, "produtos"));
-      console.log("Produtos encontrados:", querySnapshot.size);
-      querySnapshot.forEach((doc) => {
-        console.log(doc.id, "=>", doc.data());
-        const produto = doc.data();
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${produto.codigo}</td>
-          <td>${produto.descricao}</td>
-          <td>${produto.fornecedor}</td>
-          <td>${produto.imagem ? `<img src="${produto.imagem}" class="prod-img" />` : ''}</td>
-          <td><button class="small-btn" onclick="alert('Funcionalidade a implementar')">Editar</button></td>
-        `;
-        listaProdutos.appendChild(tr);
+  // Envio do formulário
+  const formP = document.getElementById("formProduto");
+  formP.onsubmit = async e => {
+    e.preventDefault();
+    const cd = document.getElementById("produtoCodigo").value.trim();
+    const ds = document.getElementById("produtoDescricao").value.trim();
+    const fr = document.getElementById("produtoFornecedor").value.trim();
+    let img = "";
+    const file = document.getElementById("produtoImagem").files[0];
+    if (file) {
+      img = await new Promise(r => {
+        const reader = new FileReader();
+        reader.onload = () => r(reader.result);
+        reader.readAsDataURL(file);
       });
-    } catch (err) {
-      console.error("Erro ao carregar produtos:", err);
     }
+    const produto = { codigo: cd, descricao: ds, fornecedor: fr, imagem: img, criadoEm: new Date() };
+    await salvarNoFirestore(produto);
+    alert("Produto enviado ao Firebase!");
+    formP.reset();
   };
-
-  document.addEventListener("DOMContentLoaded", () => {
-    carregarProdutos();
-
-    const formP = document.getElementById("formProduto");
-    formP.onsubmit = async (e) => {
-      e.preventDefault();
-
-      const cd = document.getElementById("produtoCodigo").value.trim();
-      const ds = document.getElementById("produtoDescricao").value.trim();
-      const fr = document.getElementById("produtoFornecedor").value.trim();
-
-      let img = "";
-      const file = document.getElementById("produtoImagem").files[0];
-      if (file) {
-        img = await new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(file);
-        });
-      }
-
-      const produto = { codigo: cd, descricao: ds, fornecedor: fr, imagem: img, criadoEm: new Date() };
-      await salvarNoFirestore(produto);
-      alert("Produto enviado ao Firebase!");
-      formP.reset();
-
-      carregarProdutos();
-    };
-  });
 </script>
+
+</body>
+</html>
