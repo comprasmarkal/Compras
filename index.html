@@ -2,122 +2,39 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Markal - Pulverizadores e Barras Hidráulicas</title>
+  <title>Markal - Produtos</title>
   <style>
-    body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f5f5f5; }
-    header { background:#005f73; color:#fff; padding:1rem; font-size:1.5rem; font-weight:bold; }
-    nav { background:#0a9396; padding:0.5rem; display:flex; gap:1rem; }
-    nav button { background:#94d2bd; border:none; padding:0.5rem 1rem; cursor:pointer; font-weight:600; border-radius:4px; }
-    nav button.active { background:#ee9b00; color:#fff; }
-    main { padding:1rem; }
-    table { width: 100%; border-collapse: collapse; margin-bottom:1rem; background:#fff; }
-    th, td { padding:0.5rem; border:1px solid #ccc; text-align:left; vertical-align: middle; }
-    th { background:#94d2bd; }
-    input[type="text"], input[type="number"], input[type="date"], select { padding:0.3rem; width:100%; box-sizing:border-box; }
-    button.small-btn { padding:0.3rem 0.6rem; font-size:0.9rem; margin-left:0.3rem; cursor:pointer; border-radius:3px; border:none; background:#ee9b00; color:#fff; }
-    button.small-btn:hover { background:#ca7f00; }
-    img.prod-img { max-width:50px; max-height:50px; object-fit:contain; }
-    .flex-row { display:flex; gap:0.5rem; align-items:center; margin-bottom: 0.5rem; }
+    body { font-family: Arial; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background-color: #94d2bd; }
+    img.prod-img { max-width: 50px; max-height: 50px; object-fit: contain; }
   </style>
 </head>
 <body>
 
-<header>Markal - Pulverizadores e Barras Hidráulicas</header>
-<nav>
-  <button id="tabProdutoBtn" class="active">Produto</button>
-  <button id="tabCarrinhoBtn">Carrinho de Compra</button>
-  <button id="tabCotacaoBtn">Cotação</button>
-  <button id="tabPedidosBtn">Pedidos</button>
-  <button id="tabInventarioBtn">Inventário</button>
-</nav>
+<h1>Cadastro de Produto</h1>
+<form id="formProduto">
+  Código: <input type="text" id="produtoCodigo" required />
+  Descrição: <input type="text" id="produtoDescricao" required />
+  Fornecedor: <input type="text" id="produtoFornecedor" required />
+  Imagem: <input type="file" id="produtoImagem" accept="image/*" />
+  <button type="submit">Adicionar Produto</button>
+</form>
 
-<main>
-  <!-- ABA PRODUTO -->
-  <section id="tabProduto" style="display:block;">
-    <h2>Cadastro de Produto</h2>
-    <form id="formProduto">
-      <div class="flex-row"><label style="width:80px;">Código:</label><input type="text" id="produtoCodigo" required /></div>
-      <div class="flex-row"><label style="width:80px;">Descrição:</label><input type="text" id="produtoDescricao" required /></div>
-      <div class="flex-row"><label style="width:80px;">Fornecedor:</label><input type="text" id="produtoFornecedor" required /></div>
-      <div class="flex-row"><label style="width:80px;">Imagem:</label><input type="file" id="produtoImagem" accept="image/*" /></div>
-      <button type="submit">Adicionar Produto</button>
-    </form>
-    <h3>Produtos Cadastrados</h3>
-    <table>
-      <thead><tr><th>Código</th><th>Descrição</th><th>Fornecedor</th><th>Imagem</th></tr></thead>
-      <tbody id="listaProdutos"></tbody>
-    </table>
-  </section>
-
-  <!-- ABA CARRINHO -->
-  <section id="tabCarrinho" style="display:none;">
-    <h2>Carrinho de Compra</h2>
-    <form id="formCarrinho">
-      <div class="flex-row"><label style="width:80px;">Produto Código:</label><input type="text" id="carrinhoCodigo" required /></div>
-      <div class="flex-row"><label style="width:80px;">Quantidade:</label><input type="number" id="carrinhoQuantidade" min="1" required /></div>
-      <button type="submit">Adicionar ao Carrinho</button>
-    </form>
-    <h3>Itens no Carrinho</h3>
-    <table>
-      <thead><tr><th>Produto Código</th><th>Quantidade</th></tr></thead>
-      <tbody id="listaCarrinho"></tbody>
-    </table>
-  </section>
-
-  <!-- ABA COTAÇÃO -->
-  <section id="tabCotacao" style="display:none;">
-    <h2>Cotação</h2>
-    <form id="formCotacao">
-      <div class="flex-row"><label style="width:80px;">Produto Código:</label><input type="text" id="cotacaoCodigo" required /></div>
-      <div class="flex-row"><label style="width:80px;">Preço Unitário:</label><input type="number" id="cotacaoPreco" min="0" step="0.01" required /></div>
-      <button type="submit">Adicionar Cotação</button>
-    </form>
-    <h3>Cotações Registradas</h3>
-    <table>
-      <thead><tr><th>Produto Código</th><th>Preço Unitário</th></tr></thead>
-      <tbody id="listaCotacao"></tbody>
-    </table>
-  </section>
-
-  <!-- ABA PEDIDOS -->
-  <section id="tabPedidos" style="display:none;">
-    <h2>Pedidos</h2>
-    <form id="formPedidos">
-      <div class="flex-row"><label style="width:80px;">Número do Pedido:</label><input type="text" id="pedidoNumero" required /></div>
-      <div class="flex-row"><label style="width:80px;">Produto Código:</label><input type="text" id="pedidoCodigo" required /></div>
-      <div class="flex-row"><label style="width:80px;">Quantidade:</label><input type="number" id="pedidoQuantidade" min="1" required /></div>
-      <button type="submit">Adicionar Pedido</button>
-    </form>
-    <h3>Pedidos Registrados</h3>
-    <table>
-      <thead><tr><th>Número Pedido</th><th>Produto Código</th><th>Quantidade</th></tr></thead>
-      <tbody id="listaPedidos"></tbody>
-    </table>
-  </section>
-
-  <!-- ABA INVENTÁRIO -->
-  <section id="tabInventario" style="display:none;">
-    <h2>Inventário</h2>
-    <form id="formInventario">
-      <div class="flex-row"><label style="width:80px;">Produto Código:</label><input type="text" id="inventarioCodigo" required /></div>
-      <div class="flex-row"><label style="width:80px;">Quantidade em Estoque:</label><input type="number" id="inventarioQuantidade" min="0" required /></div>
-      <button type="submit">Atualizar Inventário</button>
-    </form>
-    <h3>Estoque Atual</h3>
-    <table>
-      <thead><tr><th>Produto Código</th><th>Quantidade</th></tr></thead>
-      <tbody id="listaInventario"></tbody>
-    </table>
-  </section>
-</main>
+<h2>Produtos Cadastrados</h2>
+<table>
+  <thead>
+    <tr><th>Código</th><th>Descrição</th><th>Fornecedor</th><th>Imagem</th></tr>
+  </thead>
+  <tbody id="listaProdutos"></tbody>
+</table>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-  import { 
-    getFirestore, collection, addDoc, onSnapshot 
-  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  // Config Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyCGyMwZj4jSoc3Aur0IW3eH7CUFxI5Hxsw",
     authDomain: "markal-compras-26db2.firebaseapp.com",
@@ -130,48 +47,50 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Função para trocar abas
-  const abas = ["Produto", "Carrinho", "Cotacao", "Pedidos", "Inventario"];
-  abas.forEach(aba => {
-    document.getElementById(`tab${aba}Btn`).addEventListener("click", () => {
-      abas.forEach(a => {
-        document.getElementById(`tab${a}`).style.display = "none";
-        document.getElementById(`tab${a}Btn`).classList.remove("active");
-      });
-      document.getElementById(`tab${aba}`).style.display = "block";
-      document.getElementById(`tab${aba}Btn`).classList.add("active");
-    });
-  });
+  // Referência da coleção
+  const produtosRef = collection(db, "produtos");
 
-  // --- Produto ---
+  // Pega o formulário e lista tbody
   const formProduto = document.getElementById("formProduto");
+  const listaProdutos = document.getElementById("listaProdutos");
+
+  // Escuta submissão do formulário
   formProduto.addEventListener("submit", async e => {
     e.preventDefault();
     const codigo = document.getElementById("produtoCodigo").value.trim();
     const descricao = document.getElementById("produtoDescricao").value.trim();
     const fornecedor = document.getElementById("produtoFornecedor").value.trim();
-    const fileInput = document.getElementById("produtoImagem");
+
+    // Lê imagem como base64 se houver
+    const inputImagem = document.getElementById("produtoImagem");
     let imagem = "";
-    if (fileInput.files.length > 0) {
+    if (inputImagem.files.length > 0) {
       imagem = await new Promise(resolve => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(fileInput.files[0]);
+        reader.readAsDataURL(inputImagem.files[0]);
       });
     }
+
+    // Adiciona no Firestore
     try {
-      await addDoc(collection(db, "produtos"), { codigo, descricao, fornecedor, imagem, criadoEm: new Date() });
-      alert("Produto enviado ao Firebase!");
+      await addDoc(produtosRef, {
+        codigo,
+        descricao,
+        fornecedor,
+        imagem,
+        criadoEm: new Date()
+      });
+      alert("Produto salvo no Firebase!");
       formProduto.reset();
-    } catch(err) {
-      alert("Erro ao salvar produto: " + err.message);
+    } catch (err) {
+      alert("Erro ao salvar: " + err.message);
     }
   });
 
-  // Mostrar lista produtos
-  const listaProdutos = document.getElementById("listaProdutos");
-  onSnapshot(collection(db, "produtos"), snapshot => {
-    listaProdutos.innerHTML = "";
+  // Escuta mudanças na coleção em tempo real
+  onSnapshot(produtosRef, (snapshot) => {
+    listaProdutos.innerHTML = ""; // limpa lista
     snapshot.forEach(doc => {
       const p = doc.data();
       const tr = document.createElement("tr");
@@ -179,50 +98,12 @@
         <td>${p.codigo}</td>
         <td>${p.descricao}</td>
         <td>${p.fornecedor}</td>
-        <td>${p.imagem ? `<img src="${p.imagem}" class="prod-img" alt="imagem"/>` : ""}</td>
+        <td>${p.imagem ? `<img src="${p.imagem}" class="prod-img" />` : ""}</td>
       `;
       listaProdutos.appendChild(tr);
     });
   });
+</script>
 
-  // --- Carrinho ---
-  const formCarrinho = document.getElementById("formCarrinho");
-  formCarrinho.addEventListener("submit", async e => {
-    e.preventDefault();
-    const codigo = document.getElementById("carrinhoCodigo").value.trim();
-    const quantidade = parseInt(document.getElementById("carrinhoQuantidade").value);
-    try {
-      await addDoc(collection(db, "carrinho"), { codigo, quantidade, criadoEm: new Date() });
-      alert("Item adicionado ao carrinho!");
-      formCarrinho.reset();
-    } catch(err) {
-      alert("Erro ao salvar carrinho: " + err.message);
-    }
-  });
-  const listaCarrinho = document.getElementById("listaCarrinho");
-  onSnapshot(collection(db, "carrinho"), snapshot => {
-    listaCarrinho.innerHTML = "";
-    snapshot.forEach(doc => {
-      const item = doc.data();
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${item.codigo}</td><td>${item.quantidade}</td>`;
-      listaCarrinho.appendChild(tr);
-    });
-  });
-
-  // --- Cotação ---
-  const formCotacao = document.getElementById("formCotacao");
-  formCotacao.addEventListener("submit", async e => {
-    e.preventDefault();
-    const codigo = document.getElementById("cotacaoCodigo").value.trim();
-    const preco = parseFloat(document.getElementById("cotacaoPreco").value);
-    try {
-      await addDoc(collection(db, "cotacoes"), { codigo, preco, criadoEm: new Date() });
-      alert("Cotação adicionada!");
-      formCotacao.reset();
-    } catch(err) {
-      alert("Erro ao salvar cotação: " + err.message);
-    }
-  });
-  const listaCotacao = document.getElementById("listaCotacao");
-  onSnapshot(collection(db,
+</body>
+</html>
