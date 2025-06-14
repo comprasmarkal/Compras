@@ -47,16 +47,16 @@
     <div class="flex-row"><label style="width:100px;">Buscar:</label><input type="text" id="filtroProduto" placeholder="Código ou Fornecedor" /></div>
     <table><thead><tr><th>Código</th><th>Descrição</th><th>Fornecedor</th><th>Imagem</th><th>Ações</th></tr></thead><tbody id="listaProdutos"></tbody></table>
   </section>
-  <!-- outas abas omitidas por brevidade, mantenha igual seu código atual -->
+  <!-- outras abas omitidas para brevidade -->
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<!-- Firebase + Firestore -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+  // Config Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyCGyMwZj4jSoc3Aur0IW3eH7CUFxI5Hxsw",
     authDomain: "markal-compras-26db2.firebaseapp.com",
@@ -66,40 +66,42 @@
     appId: "1:658824602590:web:38cce5d865d4ca227d734f"
   };
 
+  // Inicializa Firebase e Firestore
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Extende seu código: substitua a função localStorage por Firestore
-  const salvarNoFirestore = async produto => {
+  // Salvar produto no Firestore
+  const salvarNoFirestore = async (produto) => {
     try {
       await addDoc(collection(db, "produtos"), produto);
       console.log("Produto salvo no Firestore");
     } catch (err) {
-      console.error("Erro ao salvar Firestore:", err);
+      console.error("Erro ao salvar no Firestore:", err);
     }
   };
 
-  // Atualiza o envio do form
+  // Formulário Produto
   const formP = document.getElementById("formProduto");
-  formP.onsubmit = async e => {
+  formP.onsubmit = async (e) => {
     e.preventDefault();
     const cd = document.getElementById("produtoCodigo").value.trim();
     const ds = document.getElementById("produtoDescricao").value.trim();
     const fr = document.getElementById("produtoFornecedor").value.trim();
+
     let img = "";
     const file = document.getElementById("produtoImagem").files[0];
     if (file) {
-      img = await new Promise(r => {
+      img = await new Promise((resolve) => {
         const reader = new FileReader();
-        reader.onload = () => r(reader.result);
+        reader.onload = () => resolve(reader.result);
         reader.readAsDataURL(file);
       });
     }
+
     const produto = { codigo: cd, descricao: ds, fornecedor: fr, imagem: img, criadoEm: new Date() };
-    salvarNoFirestore(produto);
+    await salvarNoFirestore(produto);
     alert("Produto enviado ao Firebase!");
     formP.reset();
-    // opcional: limpar lista local ou recarregar Firestore
   };
 </script>
 
