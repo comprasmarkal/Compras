@@ -1,40 +1,125 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <title>Markal - Produtos</title>
-  <style>
-    body { font-family: Arial; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 8px; }
-    th { background-color: #94d2bd; }
-    img.prod-img { max-width: 50px; max-height: 50px; object-fit: contain; }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Markal - Sistema Completo</title>
+<style>
+  body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f5f5f5; }
+  header { background:#005f73; color:#fff; padding:1rem; font-size:1.5rem; font-weight:bold; }
+  nav { background:#0a9396; padding:0.5rem; display:flex; gap:1rem; }
+  nav button { background:#94d2bd; border:none; padding:0.5rem 1rem; cursor:pointer; font-weight:600; border-radius:4px; }
+  nav button.active { background:#ee9b00; color:#fff; }
+  main { padding:1rem; }
+  table { width: 100%; border-collapse: collapse; margin-bottom:1rem; background:#fff; }
+  th, td { padding:0.5rem; border:1px solid #ccc; text-align:left; vertical-align: middle; }
+  th { background:#94d2bd; }
+  input[type="text"], input[type="number"], select { padding:0.3rem; width:100%; box-sizing:border-box; }
+  button.small-btn { padding:0.3rem 0.6rem; font-size:0.9rem; margin-left:0.3rem; cursor:pointer; border-radius:3px; border:none; background:#ee9b00; color:#fff; }
+  button.small-btn:hover { background:#ca7f00; }
+  img.prod-img { max-width:50px; max-height:50px; object-fit:contain; }
+  .flex-row { display:flex; gap:0.5rem; align-items:center; margin-bottom: 0.5rem;}
+  section { display:none; }
+  section.active { display: block; }
+</style>
 </head>
 <body>
 
-<h1>Cadastro de Produto</h1>
-<form id="formProduto">
-  Código: <input type="text" id="produtoCodigo" required />
-  Descrição: <input type="text" id="produtoDescricao" required />
-  Fornecedor: <input type="text" id="produtoFornecedor" required />
-  Imagem: <input type="file" id="produtoImagem" accept="image/*" />
-  <button type="submit">Adicionar Produto</button>
-</form>
+<header>Markal - Pulverizadores e Barras Hidráulicas</header>
 
-<h2>Produtos Cadastrados</h2>
-<table>
-  <thead>
-    <tr><th>Código</th><th>Descrição</th><th>Fornecedor</th><th>Imagem</th></tr>
-  </thead>
-  <tbody id="listaProdutos"></tbody>
-</table>
+<nav>
+  <button data-tab="produto" class="active">Produto</button>
+  <button data-tab="carrinho">Carrinho de Compra</button>
+  <button data-tab="cotacao">Cotação</button>
+  <button data-tab="pedidos">Pedidos</button>
+  <button data-tab="inventario">Inventário</button>
+</nav>
+
+<main>
+
+  <!-- Aba Produto -->
+  <section id="produto" class="active">
+    <h2>Cadastro de Produto</h2>
+    <form id="formProduto">
+      <div class="flex-row"><label style="width:80px;">Código:</label><input type="text" id="produtoCodigo" required /></div>
+      <div class="flex-row"><label style="width:80px;">Descrição:</label><input type="text" id="produtoDescricao" required /></div>
+      <div class="flex-row"><label style="width:80px;">Fornecedor:</label><input type="text" id="produtoFornecedor" required /></div>
+      <div class="flex-row"><label style="width:80px;">Imagem:</label><input type="file" id="produtoImagem" accept="image/*" /></div>
+      <button type="submit">Adicionar Produto</button>
+    </form>
+    <h3>Produtos Cadastrados</h3>
+    <table>
+      <thead><tr><th>Código</th><th>Descrição</th><th>Fornecedor</th><th>Imagem</th></tr></thead>
+      <tbody id="listaProdutos"></tbody>
+    </table>
+  </section>
+
+  <!-- Aba Carrinho -->
+  <section id="carrinho">
+    <h2>Carrinho de Compra</h2>
+    <form id="formCarrinho">
+      <div class="flex-row"><label style="width:120px;">Produto Código:</label><input type="text" id="carrinhoCodigo" required /></div>
+      <div class="flex-row"><label style="width:120px;">Quantidade:</label><input type="number" id="carrinhoQuantidade" required min="1" /></div>
+      <button type="submit">Adicionar ao Carrinho</button>
+    </form>
+    <h3>Itens no Carrinho</h3>
+    <table>
+      <thead><tr><th>Código</th><th>Quantidade</th></tr></thead>
+      <tbody id="listaCarrinho"></tbody>
+    </table>
+  </section>
+
+  <!-- Aba Cotação -->
+  <section id="cotacao">
+    <h2>Cotação</h2>
+    <form id="formCotacao">
+      <div class="flex-row"><label style="width:100px;">Produto Código:</label><input type="text" id="cotacaoCodigo" required /></div>
+      <div class="flex-row"><label style="width:100px;">Preço Proposto:</label><input type="number" id="cotacaoPreco" required min="0" step="0.01" /></div>
+      <button type="submit">Enviar Cotação</button>
+    </form>
+    <h3>Cotações Recebidas</h3>
+    <table>
+      <thead><tr><th>Código</th><th>Preço Proposto</th></tr></thead>
+      <tbody id="listaCotacao"></tbody>
+    </table>
+  </section>
+
+  <!-- Aba Pedidos -->
+  <section id="pedidos">
+    <h2>Pedidos</h2>
+    <form id="formPedidos">
+      <div class="flex-row"><label style="width:100px;">Número do Pedido:</label><input type="text" id="pedidoNumero" required /></div>
+      <div class="flex-row"><label style="width:100px;">Cliente:</label><input type="text" id="pedidoCliente" required /></div>
+      <button type="submit">Registrar Pedido</button>
+    </form>
+    <h3>Pedidos Registrados</h3>
+    <table>
+      <thead><tr><th>Número</th><th>Cliente</th></tr></thead>
+      <tbody id="listaPedidos"></tbody>
+    </table>
+  </section>
+
+  <!-- Aba Inventário -->
+  <section id="inventario">
+    <h2>Inventário</h2>
+    <form id="formInventario">
+      <div class="flex-row"><label style="width:100px;">Produto Código:</label><input type="text" id="inventarioCodigo" required /></div>
+      <div class="flex-row"><label style="width:100px;">Quantidade em Estoque:</label><input type="number" id="inventarioQuantidade" required min="0" /></div>
+      <button type="submit">Atualizar Inventário</button>
+    </form>
+    <h3>Estoque Atual</h3>
+    <table>
+      <thead><tr><th>Código</th><th>Quantidade</th></tr></thead>
+      <tbody id="listaInventario"></tbody>
+    </table>
+  </section>
+
+</main>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-  // Config Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyCGyMwZj4jSoc3Aur0IW3eH7CUFxI5Hxsw",
     authDomain: "markal-compras-26db2.firebaseapp.com",
@@ -47,22 +132,30 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Referência da coleção
+  // Função para mudar abas
+  const navButtons = document.querySelectorAll('nav button');
+  const sections = document.querySelectorAll('main section');
+  navButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      navButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sections.forEach(sec => sec.classList.remove('active'));
+      document.getElementById(btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // === Produto ===
   const produtosRef = collection(db, "produtos");
-
-  // Pega o formulário e lista tbody
-  const formProduto = document.getElementById("formProduto");
   const listaProdutos = document.getElementById("listaProdutos");
+  const formProduto = document.getElementById("formProduto");
 
-  // Escuta submissão do formulário
   formProduto.addEventListener("submit", async e => {
     e.preventDefault();
     const codigo = document.getElementById("produtoCodigo").value.trim();
     const descricao = document.getElementById("produtoDescricao").value.trim();
     const fornecedor = document.getElementById("produtoFornecedor").value.trim();
-
-    // Lê imagem como base64 se houver
     const inputImagem = document.getElementById("produtoImagem");
+
     let imagem = "";
     if (inputImagem.files.length > 0) {
       imagem = await new Promise(resolve => {
@@ -72,25 +165,17 @@
       });
     }
 
-    // Adiciona no Firestore
     try {
-      await addDoc(produtosRef, {
-        codigo,
-        descricao,
-        fornecedor,
-        imagem,
-        criadoEm: new Date()
-      });
-      alert("Produto salvo no Firebase!");
+      await addDoc(produtosRef, { codigo, descricao, fornecedor, imagem, criadoEm: new Date() });
+      alert("Produto salvo com sucesso!");
       formProduto.reset();
-    } catch (err) {
-      alert("Erro ao salvar: " + err.message);
+    } catch (error) {
+      alert("Erro ao salvar produto: " + error.message);
     }
   });
 
-  // Escuta mudanças na coleção em tempo real
-  onSnapshot(produtosRef, (snapshot) => {
-    listaProdutos.innerHTML = ""; // limpa lista
+  onSnapshot(produtosRef, snapshot => {
+    listaProdutos.innerHTML = "";
     snapshot.forEach(doc => {
       const p = doc.data();
       const tr = document.createElement("tr");
@@ -103,6 +188,135 @@
       listaProdutos.appendChild(tr);
     });
   });
+
+  // === Carrinho ===
+  const carrinhoRef = collection(db, "carrinho");
+  const listaCarrinho = document.getElementById("listaCarrinho");
+  const formCarrinho = document.getElementById("formCarrinho");
+
+  formCarrinho.addEventListener("submit", async e => {
+    e.preventDefault();
+    const codigo = document.getElementById("carrinhoCodigo").value.trim();
+    const quantidade = Number(document.getElementById("carrinhoQuantidade").value);
+
+    try {
+      await addDoc(carrinhoRef, { codigo, quantidade, criadoEm: new Date() });
+      alert("Item adicionado ao carrinho!");
+      formCarrinho.reset();
+    } catch (error) {
+      alert("Erro ao adicionar ao carrinho: " + error.message);
+    }
+  });
+
+  onSnapshot(carrinhoRef, snapshot => {
+    listaCarrinho.innerHTML = "";
+    snapshot.forEach(doc => {
+      const c = doc.data();
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${c.codigo}</td>
+        <td>${c.quantidade}</td>
+      `;
+      listaCarrinho.appendChild(tr);
+    });
+  });
+
+  // === Cotação ===
+  const cotacaoRef = collection(db, "cotacao");
+  const listaCotacao = document.getElementById("listaCotacao");
+  const formCotacao = document.getElementById("formCotacao");
+
+  formCotacao.addEventListener("submit", async e => {
+    e.preventDefault();
+    const codigo = document.getElementById("cotacaoCodigo").value.trim();
+    const preco = parseFloat(document.getElementById("cotacaoPreco").value);
+
+    try {
+      await addDoc(cotacaoRef, { codigo, preco, criadoEm: new Date() });
+      alert("Cotação enviada!");
+      formCotacao.reset();
+    } catch (error) {
+      alert("Erro ao enviar cotação: " + error.message);
+    }
+  });
+
+  onSnapshot(cotacaoRef, snapshot => {
+    listaCotacao.innerHTML = "";
+    snapshot.forEach(doc => {
+      const c = doc.data();
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${c.codigo}</td>
+        <td>R$ ${c.preco.toFixed(2)}</td>
+      `;
+      listaCotacao.appendChild(tr);
+    });
+  });
+
+  // === Pedidos ===
+  const pedidosRef = collection(db, "pedidos");
+  const listaPedidos = document.getElementById("listaPedidos");
+  const formPedidos = document.getElementById("formPedidos");
+
+  formPedidos.addEventListener("submit", async e => {
+    e.preventDefault();
+    const numero = document.getElementById("pedidoNumero").value.trim();
+    const cliente = document.getElementById("pedidoCliente").value.trim();
+
+    try {
+      await addDoc(pedidosRef, { numero, cliente, criadoEm: new Date() });
+      alert("Pedido registrado!");
+      formPedidos.reset();
+    } catch (error) {
+      alert("Erro ao registrar pedido: " + error.message);
+    }
+  });
+
+  onSnapshot(pedidosRef, snapshot => {
+    listaPedidos.innerHTML = "";
+    snapshot.forEach(doc => {
+      const p = doc.data();
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${p.numero}</td>
+        <td>${p.cliente}</td>
+      `;
+      listaPedidos.appendChild(tr);
+    });
+  });
+
+  // === Inventário ===
+  const inventarioRef = collection(db, "inventario");
+  const listaInventario = document.getElementById("listaInventario");
+  const formInventario = document.getElementById("formInventario");
+
+  formInventario.addEventListener("submit", async e => {
+    e.preventDefault();
+    const codigo = document.getElementById("inventarioCodigo").value.trim();
+    const quantidade = Number(document.getElementById("inventarioQuantidade").value);
+
+    try {
+      await addDoc(inventarioRef, { codigo, quantidade, criadoEm: new Date() });
+      alert("Inventário atualizado!");
+      formInventario.reset();
+    } catch (error) {
+      alert("Erro ao atualizar inventário: " + error.message);
+    }
+  });
+
+  onSnapshot(inventarioRef, snapshot => {
+    listaInventario.innerHTML = "";
+    snapshot.forEach(doc => {
+      const i = doc.data();
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i.codigo}</td>
+        <td>${i.quantidade}</td>
+      `;
+      listaInventario.appendChild(tr);
+    });
+  });
+
 </script>
 
 </body>
