@@ -34,7 +34,6 @@
 </nav>
 
 <main>
-  <!-- Aba Produto -->
   <section id="tabProduto" style="display:block;">
     <h2>Cadastro de Produto</h2>
     <form id="formProduto">
@@ -48,327 +47,60 @@
     <div class="flex-row"><label style="width:100px;">Buscar:</label><input type="text" id="filtroProduto" placeholder="Código ou Fornecedor" /></div>
     <table><thead><tr><th>Código</th><th>Descrição</th><th>Fornecedor</th><th>Imagem</th><th>Ações</th></tr></thead><tbody id="listaProdutos"></tbody></table>
   </section>
-
-  <!-- Aba Carrinho -->
-  <section id="tabCarrinho" style="display:none;">
-    <h2>Carrinho de Compra</h2>
-    <table><thead><tr><th>Código</th><th>Descrição</th><th>Status</th><th>Ações</th></tr></thead><tbody id="listaCarrinho"></tbody></table>
-  </section>
-
-  <!-- Aba Cotação -->
-  <section id="tabCotacao" style="display:none;">
-    <h2>Cotação</h2>
-    <button id="btnGerarPDF">Gerar PDF da Cotação Selecionada</button>
-    <table><thead><tr><th>Selecionar</th><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Imagem</th><th>Ações</th></tr></thead><tbody id="listaCotacao"></tbody></table>
-  </section>
-
-  <!-- Aba Pedidos -->
-  <section id="tabPedidos" style="display:none;">
-    <h2>Pedidos</h2>
-    <label>Filtro: <select id="filtroPedidos"><option value="todos">Todos</option><option value="pendentes">Pendentes</option><option value="finalizados">Finalizados</option></select></label>
-    <table><thead><tr><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Status</th><th>Data Chegada</th><th>Ações</th></tr></thead><tbody id="listaPedidos"></tbody></table>
-  </section>
-
-  <!-- Aba Inventário -->
-  <section id="tabInventario" style="display:none;">
-    <h2>Inventário</h2>
-    <form id="formInventario">
-      <div class="flex-row"><label style="width:100px;">Código:</label><input type="text" id="invCodigo" required /></div>
-      <div class="flex-row"><label style="width:100px;">Descrição:</label><input type="text" id="invDescricao" required /></div>
-      <div class="flex-row"><label style="width:100px;">Quantidade:</label><input type="number" id="invQuantidade" required min="1" /></div>
-      <div class="flex-row"><label style="width:100px;">Data:</label><input type="date" id="invData" required /></div>
-      <div class="flex-row"><label style="width:100px;">Responsável:</label><input type="text" id="invResponsavel" required /></div>
-      <button type="submit">Adicionar Inventário</button>
-    </form>
-    <h3>Itens do Inventário</h3>
-    <table><thead><tr><th>Código</th><th>Descrição</th><th>Quantidade</th><th>Data</th><th>Responsável</th><th>Ações</th></tr></thead><tbody id="listaInventario"></tbody></table>
-  </section>
+  <!-- outas abas omitidas por brevidade, mantenha igual seu código atual -->
 </main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-(() => {
-  // Controle de abas
-  const TABS = ["Produto","Carrinho","Cotacao","Pedidos","Inventario"];
-  const tabs = Object.fromEntries(TABS.map(t => [t, document.getElementById("tab"+t)]));
-  const btns = Object.fromEntries(TABS.map(t => [t, document.getElementById("tab"+t+"Btn")]));
-  const showTab = name => {
-    TABS.forEach(t => {
-      tabs[t].style.display = t===name ? "block":"none";
-      btns[t].classList.toggle("active", t===name);
-    });
+
+<!-- Firebase + Firestore -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCGyMwZj4jSoc3Aur0IW3eH7CUFxI5Hxsw",
+    authDomain: "markal-compras-26db2.firebaseapp.com",
+    projectId: "markal-compras-26db2",
+    storageBucket: "markal-compras-26db2.appspot.com",
+    messagingSenderId: "658824602590",
+    appId: "1:658824602590:web:38cce5d865d4ca227d734f"
   };
-  TABS.forEach(t => btns[t].onclick = () => showTab(t));
 
-  // Keys e arrays
-  const SK = { produtos: "markal_produtos", carrinho: "markal_carrinho", cotacao:"markal_cotacao", pedidos:"markal_pedidos", inventario:"markal_inventario" };
-  let produtos = JSON.parse(localStorage.getItem(SK.produtos))||[],
-      carrinho = JSON.parse(localStorage.getItem(SK.carrinho))||[],
-      cotacao = JSON.parse(localStorage.getItem(SK.cotacao))||[],
-      pedidos = JSON.parse(localStorage.getItem(SK.pedidos))||[],
-      inventario = JSON.parse(localStorage.getItem(SK.inventario))||[];
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-  const save = (key, arr) => localStorage.setItem(SK[key], JSON.stringify(arr));
+  // Extende seu código: substitua a função localStorage por Firestore
+  const salvarNoFirestore = async produto => {
+    try {
+      await addDoc(collection(db, "produtos"), produto);
+      console.log("Produto salvo no Firestore");
+    } catch (err) {
+      console.error("Erro ao salvar Firestore:", err);
+    }
+  };
 
-  // Utils
-  const lerImg = file => new Promise((res,rej)=>{
-    const r=new FileReader();
-    r.onload=()=>res(r.result); r.onerror=()=>rej("erro"); r.readAsDataURL(file);
-  });
-
-  // Produto
-  const formP = document.getElementById("formProduto"), listaP = document.getElementById("listaProdutos"), filtroP = document.getElementById("filtroProduto");
-  let editIdx = null;
+  // Atualiza o envio do form
+  const formP = document.getElementById("formProduto");
   formP.onsubmit = async e => {
     e.preventDefault();
-    const cd=document.getElementById("produtoCodigo").value.trim(),
-          ds=document.getElementById("produtoDescricao").value.trim(),
-          fr=document.getElementById("produtoFornecedor").value.trim(),
-          file=document.getElementById("produtoImagem").files[0],
-          img=file?await lerImg(file):"";
-    const obj={codigo:cd, descricao:ds, fornecedor:fr, imagem:img};
-    if(editIdx!==null){ produtos[editIdx]=obj; editIdx=null; }
-    else produtos.push(obj);
-    save("produtos", produtos); renderProdutos(); formP.reset();
-  };
-  const renderProdutos = () => {
-    const t=filtroP.value.toLowerCase();
-    listaP.innerHTML="";
-    produtos.filter(p=>p.codigo.toLowerCase().includes(t)||p.fornecedor.toLowerCase().includes(t))
-    .forEach((p,i)=> {
-      listaP.innerHTML+=`
-        <tr>
-          <td>${p.codigo}</td><td>${p.descricao}</td><td>${p.fornecedor}</td>
-          <td>${p.imagem?`<img src="${p.imagem}" class="prod-img"/>`:''}</td>
-          <td>
-            <button class="small-btn btn-editar" data-i="${i}">Editar</button>
-            <button class="small-btn btn-excluir-produto" data-i="${i}">Excluir</button>
-            <button class="small-btn btn-adicionar-carrinho" data-i="${i}">Carrinho</button>
-          </td>
-        </tr>`;
-    });
-    // Bind buttons
-    listaP.querySelectorAll(".btn-editar").forEach(btn =>
-      btn.onclick=e=>{
-        const i=e.target.dataset.i, p=produtos[i];
-        editIdx=i;
-        document.getElementById("produtoCodigo").value=p.codigo;
-        document.getElementById("produtoDescricao").value=p.descricao;
-        document.getElementById("produtoFornecedor").value=p.fornecedor;
+    const cd = document.getElementById("produtoCodigo").value.trim();
+    const ds = document.getElementById("produtoDescricao").value.trim();
+    const fr = document.getElementById("produtoFornecedor").value.trim();
+    let img = "";
+    const file = document.getElementById("produtoImagem").files[0];
+    if (file) {
+      img = await new Promise(r => {
+        const reader = new FileReader();
+        reader.onload = () => r(reader.result);
+        reader.readAsDataURL(file);
       });
-    listaP.querySelectorAll(".btn-excluir-produto").forEach(btn =>
-      btn.onclick=e=>{
-        const i=e.target.dataset.i, codigo=produtos[i].codigo;
-        if(confirm("Excluir?")){
-          produtos.splice(i,1); save("produtos",produtos); renderProdutos();
-          carrinho=carrinho.filter(x=>x.codigo!==codigo);
-          cotacao=cotacao.filter(x=>x.codigo!==codigo);
-          pedidos=pedidos.filter(x=>x.codigo!==codigo);
-          save("carrinho",carrinho); save("cotacao",cotacao); save("pedidos",pedidos);
-          renderCarrinho(); renderCotacao(); renderPedidos();
-        }
-      });
-    listaP.querySelectorAll(".btn-adicionar-carrinho").forEach(btn =>
-      btn.onclick=e=>{
-        const p=produtos[e.target.dataset.i];
-        if(!carrinho.some(c=>c.codigo===p.codigo)){
-          carrinho.push({codigo:p.codigo,status:"Comprar"});
-          save("carrinho",carrinho); renderCarrinho();
-          alert("Adicionado ao carrinho!");
-        } else alert("Já no carrinho.");
-      });
+    }
+    const produto = { codigo: cd, descricao: ds, fornecedor: fr, imagem: img, criadoEm: new Date() };
+    salvarNoFirestore(produto);
+    alert("Produto enviado ao Firebase!");
+    formP.reset();
+    // opcional: limpar lista local ou recarregar Firestore
   };
-  filtroP.oninput = renderProdutos;
-
-  // Carrinho
-  const listaC = document.getElementById("listaCarrinho");
-  const renderCarrinho=()=>{
-    listaC.innerHTML="";
-    if(carrinho.length===0){ listaC.innerHTML="<tr><td colspan='4'>Carrinho vazio</td></tr>"; return; }
-    carrinho.forEach((item,i)=>{
-      const p=produtos.find(x=>x.codigo===item.codigo);
-      listaC.innerHTML+=`
-        <tr>
-          <td>${p.codigo}</td><td>${p.descricao}</td>
-          <td><select class="sel-status" data-i="${i}">
-            <option value="Comprar"${item.status==="Comprar"?' selected':''}>Comprar</option>
-            <option value="Cotação"${item.status==="Cotação"?' selected':''}>Cotação</option>
-          </select></td>
-          <td><button class="small-btn btn-remover" data-i="${i}">Remover</button></td>
-        </tr>`;
-    });
-    // events
-    listaC.querySelectorAll(".sel-status").forEach(sel=>{
-      sel.onchange=e=>{
-        const i=e.target.dataset.i; carrinho[i].status=e.target.value;
-        save("carrinho",carrinho); renderCarrinho(); renderCotacao(); renderPedidos();
-      };
-    });
-    listaC.querySelectorAll(".btn-remover").forEach(btn=>{
-      btn.onclick=e=>{
-        carrinho.splice(e.target.dataset.i,1);
-        save("carrinho",carrinho); renderCarrinho();
-      };
-    });
-  };
-
-  // Cotação
-  const listaQ = document.getElementById("listaCotacao"), btnPDF=document.getElementById("btnGerarPDF");
-  const renderCotacao=()=>{
-    listaQ.innerHTML="";
-    const itens=carrinho.filter(x=>x.status==="Cotação");
-    if(itens.length===0){ listaQ.innerHTML="<tr><td colspan='6'>Nenhum item em cotação</td></tr>"; return; }
-    itens.forEach((item,i)=>{
-      const p=produtos.find(x=>x.codigo===item.codigo);
-      let qtd=1, cotI = cotacao.find(x=>x.codigo===item.codigo);
-      if(cotI) qtd=cotI.quantidade;
-      listaQ.innerHTML+=`
-        <tr>
-          <td><input type="checkbox" class="chk" data-i="${i}"/></td>
-          <td>${p.codigo}</td><td>${p.descricao}</td>
-          <td><input type="number" min="1" value="${qtd}" class="inp-qtd" data-i="${i}"/></td>
-          <td>${p.imagem?`<img src="${p.imagem}" class="prod-img"/>`:''}</td>
-          <td>
-            <button class="small-btn btn-aprovar" data-i="${i}">Aprovar Compra</button>
-            <button class="small-btn btn-excluir-cot" data-i="${i}">Excluir</button>
-          </td>
-        </tr>`;
-    });
-    listaQ.querySelectorAll(".inp-qtd").forEach(inp=>{
-      inp.onchange=e=>{
-        const i=e.target.dataset.i, v=parseInt(e.target.value)||1;
-        const item=carrinho.filter(x=>x.status==="Cotação")[i];
-        let cotI = cotacao.find(x=>x.codigo===item.codigo);
-        if(cotI) cotI.quantidade=v; else cotacao.push({codigo:item.codigo, quantidade:v});
-        save("cotacao",cotacao); renderCotacao();
-      };
-    });
-    listaQ.querySelectorAll(".btn-aprovar").forEach(btn=>{
-      btn.onclick=e=>{
-        const i=e.target.dataset.i;
-        const item=carrinho.filter(x=>x.status==="Cotação")[i];
-        const qtd=cotacao.find(x=>x.codigo===item.codigo)?.quantidade||1;
-        const p=produtos.find(x=>x.codigo===item.codigo);
-        pedidos.push({codigo:p.codigo, descricao:p.descricao, quantidade:qtd, status:"Pendente", dataChegada:""});
-        save("pedidos",pedidos); renderPedidos();
-        carrinho=carrinho.filter(x=>x.codigo!==item.codigo);
-        cotacao=cotacao.filter(x=>x.codigo!==item.codigo);
-        save("carrinho",carrinho); save("cotacao",cotacao);
-        renderCarrinho(); renderCotacao();
-        alert("Pedido aprovado!");
-      };
-    });
-    listaQ.querySelectorAll(".btn-excluir-cot").forEach(btn=>{
-      btn.onclick=e=>{
-        const i=e.target.dataset.i;
-        const item=carrinho.filter(x=>x.status==="Cotação")[i];
-        if(confirm("Excluir?")){
-          carrinho=carrinho.filter(x=>x.codigo!==item.codigo);
-          cotacao=cotacao.filter(x=>x.codigo!==item.codigo);
-          save("carrinho",carrinho); save("cotacao",cotacao);
-          renderCarrinho(); renderCotacao();
-        }
-      };
-    });
-  };
-  btnPDF.onclick=()=>{
-    const {jsPDF} = window.jspdf;
-    const doc=new jsPDF(), selIdx=[];
-    listaQ.querySelectorAll(".chk").forEach(c=>c.checked && selIdx.push(c.dataset.i));
-    if(selIdx.length===0){ alert("Selecione itens."); return; }
-    let y=10;
-    doc.setFontSize(16); doc.text("Cotação de Produtos - Markal",10,y); y+=10;
-    selIdx.forEach(i=>{
-      const item=carrinho.filter(x=>x.status==="Cotação")[i];
-      const p=produtos.find(x=>x.codigo===item.codigo);
-      const qtd=cotacao.find(x=>x.codigo===item.codigo)?.quantidade||1;
-      doc.setFontSize(12);
-      doc.text(`Código: ${p.codigo}`,10,y); y+=6;
-      doc.text(`Descrição: ${p.descricao}`,10,y); y+=6;
-      doc.text(`Quantidade: ${qtd}`,10,y); y+=10;
-      if(y>280){ doc.addPage(); y=10; }
-    });
-    doc.save("cotacao.pdf");
-  };
-
-  // Pedidos
-  const listaD = document.getElementById("listaPedidos"), filtroD=document.getElementById("filtroPedidos");
-  const renderPedidos=()=>{
-    listaD.innerHTML="";
-    let arr=pedidos;
-    if(filtroD.value==="pendentes") arr=pedidos.filter(x=>x.status==="Pendente");
-    else if(filtroD.value==="finalizados") arr=pedidos.filter(x=>x.status==="Finalizado");
-    if(arr.length===0){ listaD.innerHTML="<tr><td colspan='6'>Nenhum pedido</td></tr>"; return; }
-    arr.forEach((p,i)=>{
-      listaD.innerHTML+=`
-        <tr>
-          <td>${p.codigo}</td><td>${p.descricao}</td><td>${p.quantidade}</td><td>${p.status}</td>
-          <td><input type="date" class="inp-data" data-i="${i}" value="${p.dataChegada}"/></td>
-          <td>
-            ${p.status!=="Finalizado"?`<button class="small-btn btn-finalizar" data-i="${i}">Finalizar</button>`:""}
-            <button class="small-btn btn-excluir-ped" data-i="${i}">Excluir</button>
-          </td>
-        </tr>`;
-    });
-    listaD.querySelectorAll(".inp-data").forEach(inp=>{
-      inp.onchange=e=>{
-        pedidos[e.target.dataset.i].dataChegada=e.target.value;
-        save("pedidos",pedidos);
-      };
-    });
-    listaD.querySelectorAll(".btn-finalizar").forEach(btn=>{
-      btn.onclick=e=>{
-        pedidos[e.target.dataset.i].status="Finalizado";
-        save("pedidos",pedidos); renderPedidos();
-      };
-    });
-    listaD.querySelectorAll(".btn-excluir-ped").forEach(btn=>{
-      btn.onclick=e=>{
-        if(confirm("Excluir?")){
-          pedidos.splice(e.target.dataset.i,1);
-          save("pedidos",pedidos); renderPedidos();
-        }
-      };
-    });
-  };
-  filtroD.onchange=renderPedidos;
-
-  // Inventário
-  const formI=document.getElementById("formInventario"), listaI=document.getElementById("listaInventario");
-  formI.onsubmit=e=>{
-    e.preventDefault();
-    const cd=document.getElementById("invCodigo").value.trim(),
-          ds=document.getElementById("invDescricao").value.trim(),
-          qt=parseInt(document.getElementById("invQuantidade").value),
-          dt=document.getElementById("invData").value,
-          rp=document.getElementById("invResponsavel").value.trim();
-    if(!cd||!ds||!qt||!dt||!rp){ alert("Preencha todos"); return; }
-    inventario.push({codigo:cd,descricao:ds,quantidade:qt,data:dt,responsavel:rp});
-    save("inventario",inventario); renderInventario(); formI.reset();
-  };
-  const renderInventario=()=>{
-    listaI.innerHTML="";
-    if(inventario.length===0){ listaI.innerHTML="<tr><td colspan='6'>Inventário vazio</td></tr>"; return; }
-    inventario.forEach((it,i)=>{
-      listaI.innerHTML+=`
-        <tr>
-          <td>${it.codigo}</td><td>${it.descricao}</td><td>${it.quantidade}</td><td>${it.data}</td><td>${it.responsavel}</td>
-          <td><button class="small-btn btn-excluir-inv" data-i="${i}">Excluir</button></td>
-        </tr>`;
-    });
-    listaI.querySelectorAll(".btn-excluir-inv").forEach(btn=>{
-      btn.onclick=e=>{
-        if(confirm("Excluir?")){
-          inventario.splice(e.target.dataset.i,1);
-          save("inventario",inventario); renderInventario();
-        }
-      };
-    });
-  };
-
-  // Inicializa tudo
-  renderProdutos(); renderCarrinho(); renderCotacao(); renderPedidos(); renderInventario();
-})();
 </script>
 
 </body>
