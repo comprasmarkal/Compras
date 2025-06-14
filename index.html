@@ -29,7 +29,9 @@
 
     try {
       const querySnapshot = await getDocs(collection(db, "produtos"));
+      console.log("Produtos encontrados:", querySnapshot.size);
       querySnapshot.forEach((doc) => {
+        console.log(doc.id, "=>", doc.data());
         const produto = doc.data();
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -46,31 +48,33 @@
     }
   };
 
-  const formP = document.getElementById("formProduto");
-  formP.onsubmit = async (e) => {
-    e.preventDefault();
-
-    const cd = document.getElementById("produtoCodigo").value.trim();
-    const ds = document.getElementById("produtoDescricao").value.trim();
-    const fr = document.getElementById("produtoFornecedor").value.trim();
-
-    let img = "";
-    const file = document.getElementById("produtoImagem").files[0];
-    if (file) {
-      img = await new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-      });
-    }
-
-    const produto = { codigo: cd, descricao: ds, fornecedor: fr, imagem: img, criadoEm: new Date() };
-    await salvarNoFirestore(produto);
-    alert("Produto enviado ao Firebase!");
-    formP.reset();
-
+  document.addEventListener("DOMContentLoaded", () => {
     carregarProdutos();
-  };
 
-  carregarProdutos(); // carrega lista ao abrir a página
+    const formP = document.getElementById("formProduto");
+    formP.onsubmit = async (e) => {
+      e.preventDefault();
+
+      const cd = document.getElementById("produtoCodigo").value.trim();
+      const ds = document.getElementById("produtoDescricao").value.trim();
+      const fr = document.getElementById("produtoFornecedor").value.trim();
+
+      let img = "";
+      const file = document.getElementById("produtoImagem").files[0];
+      if (file) {
+        img = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      const produto = { codigo: cd, descricao: ds, fornecedor: fr, imagem: img, criadoEm: new Date() };
+      await salvarNoFirestore(produto);
+      alert("Produto enviado ao Firebase!");
+      formP.reset();
+
+      carregarProdutos();
+    };
+  });
 </script>
